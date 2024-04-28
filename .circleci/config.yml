@@ -6,84 +6,82 @@ orbs:
 commands:
   aws_setup:
     description: |
-            Generate a shortlived AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY and AWS_SESSION_TOKEN using the $CIRCLE_OIDC_TOKEN_V2.
-            A properly configured web identity based ARN is also required for configuration.
-            Use these keys and create a profile with the aws-cli/setup commands.
-            For more information, see the CircleCI OIDC docs: https://circleci.com/docs/2.0/openid-connect-tokens/
-        parameters:
-            profile_name:
-                default: default
-                description: Profile name for web identity role assumption
-                type: string
-            region:
-                default: ${AWS_DEFAULT_REGION}
-                description: |
-                    AWS region to operate in
-                    (defaults to env var of ${AWS_DEFAULT_REGION})
-                type: string
-            role_arn:
-                description: |
-                    The Amazon Resource Name (ARN) of the role that the caller is assuming.
-                    Role ARN must be configured for web identity.
-                type: string
-            role_session_name:
-                default: ${CIRCLE_JOB}
-                description: An identifier for the assumed role session
-                type: string
-            session_duration:
-                default: "3600"
-                description: The duration of the session in seconds
-                type: string
-            set_aws_env_vars:
-                default: true
-                description: |
-                    Write AWS keys generated from OIDC to a temporary file.
-                    Set to false if generating keys for multiple profiles.
-                    By default, the keys are written to $BASH_ENV.
-                type: boolean
-        steps:
-            - run:
-                command: "#!/bin/sh\nAWS_CLI_STR_ROLE_SESSION_NAME=\"$(echo \"${AWS_CLI_STR_ROLE_SESSION_NAME}\" | circleci env subst)\"\nAWS_CLI_STR_ROLE_ARN=\"$(echo \"${AWS_CLI_STR_ROLE_ARN}\" | circleci env subst)\"\nAWS_CLI_STR_PROFILE_NAME=\"$(echo \"${AWS_CLI_STR_PROFILE_NAME}\" | circleci env subst)\"\nAWS_CLI_STR_REGION=\"$(echo \"${AWS_CLI_STR_REGION}\" | circleci env subst)\"\nAWS_CLI_INT_SESSION_DURATION=\"$(echo \"${AWS_CLI_INT_SESSION_DURATION}\" | circleci env subst)\"\nAWS_CLI_BOOL_SET_AWS_ENV_VARS=\"$(echo \"${AWS_CLI_BOOL_SET_AWS_ENV_VARS}\" | circleci env subst)\"\n\nAWS_CLI_STR_ROLE_SESSION_NAME=$(echo \"${AWS_CLI_STR_ROLE_SESSION_NAME}\" | tr -sC 'A-Za-z0-9=,.@_\\-' '-')\nAWS_CLI_STR_ROLE_SESSION_NAME=$(echo \"${AWS_CLI_STR_ROLE_SESSION_NAME}\" | cut -c -64)\n\nif [ -z \"${AWS_CLI_STR_ROLE_SESSION_NAME}\" ]; then\n    echo \"Role session name is required\"\n    exit 1\nfi\n\nif [ -z \"${CIRCLE_OIDC_TOKEN_V2}\" ]; then\n    echo \"OIDC Token cannot be found. A CircleCI context must be specified.\"\n    exit 1\nfi\n\nif [ ! \"$(command -v aws)\" ]; then\n    echo \"AWS CLI is not installed. Please run the setup or install command first.\"\n    exit 1\nfi\n\nif [ -n \"${AWS_CLI_STR_REGION}\" ]; then\n    set -- \"$@\" --region \"${AWS_CLI_STR_REGION}\"\nfi\n\nread -r AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN \\<<EOF\n$(aws sts assume-role-with-web-identity \\\n--role-arn \"${AWS_CLI_STR_ROLE_ARN}\" \\\n--role-session-name \"${AWS_CLI_STR_ROLE_SESSION_NAME}\" \\\n--web-identity-token \"${CIRCLE_OIDC_TOKEN_V2}\" \\\n--duration-seconds \"${AWS_CLI_INT_SESSION_DURATION}\" \\\n\"$@\" \\\n--query 'Credentials.[AccessKeyId,SecretAccessKey,SessionToken]' \\\n--output text)\nEOF\n\nif [ -z \"${AWS_ACCESS_KEY_ID}\" ] || [ -z \"${AWS_SECRET_ACCESS_KEY}\" ] || [ -z \"${AWS_SESSION_TOKEN}\" ]; then\n    echo \"Failed to assume role\";\n    exit 1\nelif [ \"${AWS_CLI_BOOL_SET_AWS_ENV_VARS}\" = 1 ]; then\n    {\n        echo \"export AWS_CLI_STR_ACCESS_KEY_ID=\\\"${AWS_ACCESS_KEY_ID}\\\"\"\n        echo \"export AWS_CLI_STR_SECRET_ACCESS_KEY=\\\"${AWS_SECRET_ACCESS_KEY}\\\"\"\n        echo \"export AWS_CLI_STR_SESSION_TOKEN=\\\"${AWS_SESSION_TOKEN}\\\"\"\n    }  >> \"$BASH_ENV\"\n\n    echo \"AWS keys successfully written to BASH_ENV\"\nelse\n    temp_file=\"/tmp/${AWS_CLI_STR_PROFILE_NAME}.keys\"\n    touch \"$temp_file\"\n    {\n        echo \"export AWS_CLI_STR_ACCESS_KEY_ID=\\\"${AWS_ACCESS_KEY_ID}\\\"\"\n        echo \"export AWS_CLI_STR_SECRET_ACCESS_KEY=\\\"${AWS_SECRET_ACCESS_KEY}\\\"\"\n        echo \"export AWS_CLI_STR_SESSION_TOKEN=\\\"${AWS_SESSION_TOKEN}\\\"\"\n    }  >> \"$temp_file\"\n    \n    echo \"AWS keys successfully written to ${AWS_CLI_STR_PROFILE_NAME}.keys\"\nfi"
-                environment:
-                    AWS_CLI_BOOL_SET_AWS_ENV_VARS: <<parameters.set_aws_env_vars>>
-                    AWS_CLI_INT_SESSION_DURATION: <<parameters.session_duration>>
-                    AWS_CLI_STR_PROFILE_NAME: <<parameters.profile_name>>
-                    AWS_CLI_STR_REGION: <<parameters.region>>
-                    AWS_CLI_STR_ROLE_ARN: <<parameters.role_arn>>
-                    AWS_CLI_STR_ROLE_SESSION_NAME: <<parameters.role_session_name>>
-                name: Generate short lived AWS Keys using CircleCI OIDC token.
-
+      Generate a shortlived AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY and AWS_SESSION_TOKEN using the $CIRCLE_OIDC_TOKEN_V2.
+      A properly configured web identity based ARN is also required for configuration.
+      Use these keys and create a profile with the aws-cli/setup commands.
+      For more information, see the CircleCI OIDC docs: https://circleci.com/docs/2.0/openid-connect-tokens/
+    parameters:
+      profile_name:
+        default: default
+        description: Profile name for web identity role assumption
+        type: string
+      region:
+        default: ${AWS_DEFAULT_REGION}
+        description: |
+          AWS region to operate in
+          (defaults to env var of ${AWS_DEFAULT_REGION})
+        type: string
+      role_arn:
+        description: |
+          The Amazon Resource Name (ARN) of the role that the caller is assuming.
+          Role ARN must be configured for web identity.
+        type: string
+      role_session_name:
+        default: ${CIRCLE_JOB}
+        description: An identifier for the assumed role session
+        type: string
+      session_duration:
+        default: "3600"
+        description: The duration of the session in seconds
+        type: string
+      set_aws_env_vars:
+        default: true
+        description: |
+          Write AWS keys generated from OIDC to a temporary file.
+          Set to false if generating keys for multiple profiles.
+          By default, the keys are written to $BASH_ENV.
+        type: boolean
     steps:
-      - checkout
-      # - aws-cli/setup:
-      #     profile_name: default
-      # - aws-cli/role_arn_setup:
-      #     profile_name: test-full-access-s3
-      #     role_arn: $AWS_IAM_ROLES
-      #     source_profile: test-full-access-s3
-      # - run: >-
-      #     aws sts assume-role --role_arn
-      #     "$AWS_IAM_ROLES" --role_session_name
-      #     AWSCLI-Session
+      - run:
+          command: "#!/bin/sh\nAWS_CLI_STR_ROLE_SESSION_NAME=\"$(echo \"${AWS_CLI_STR_ROLE_SESSION_NAME}\" | circleci env subst)\"\nAWS_CLI_STR_ROLE_ARN=\"$(echo \"${AWS_CLI_STR_ROLE_ARN}\" | circleci env subst)\"\nAWS_CLI_STR_PROFILE_NAME=\"$(echo \"${AWS_CLI_STR_PROFILE_NAME}\" | circleci env subst)\"\nAWS_CLI_STR_REGION=\"$(echo \"${AWS_CLI_STR_REGION}\" | circleci env subst)\"\nAWS_CLI_INT_SESSION_DURATION=\"$(echo \"${AWS_CLI_INT_SESSION_DURATION}\" | circleci env subst)\"\nAWS_CLI_BOOL_SET_AWS_ENV_VARS=\"$(echo \"${AWS_CLI_BOOL_SET_AWS_ENV_VARS}\" | circleci env subst)\"\n\nAWS_CLI_STR_ROLE_SESSION_NAME=$(echo \"${AWS_CLI_STR_ROLE_SESSION_NAME}\" | tr -sC 'A-Za-z0-9=,.@_\\-' '-')\nAWS_CLI_STR_ROLE_SESSION_NAME=$(echo \"${AWS_CLI_STR_ROLE_SESSION_NAME}\" | cut -c -64)\n\nif [ -z \"${AWS_CLI_STR_ROLE_SESSION_NAME}\" ]; then\n    echo \"Role session name is required\"\n    exit 1\nfi\n\nif [ -z \"${CIRCLE_OIDC_TOKEN_V2}\" ]; then\n    echo \"OIDC Token cannot be found. A CircleCI context must be specified.\"\n    exit 1\nfi\n\nif [ ! \"$(command -v aws)\" ]; then\n    echo \"AWS CLI is not installed. Please run the setup or install command first.\"\n    exit 1\nfi\n\nif [ -n \"${AWS_CLI_STR_REGION}\" ]; then\n    set -- \"$@\" --region \"${AWS_CLI_STR_REGION}\"\nfi\n\nread -r AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN \\<<EOF\n$(aws sts assume-role-with-web-identity \\\n--role-arn \"${AWS_CLI_STR_ROLE_ARN}\" \\\n--role-session-name \"${AWS_CLI_STR_ROLE_SESSION_NAME}\" \\\n--web-identity-token \"${CIRCLE_OIDC_TOKEN_V2}\" \\\n--duration-seconds \"${AWS_CLI_INT_SESSION_DURATION}\" \\\n\"$@\" \\\n--query 'Credentials.[AccessKeyId,SecretAccessKey,SessionToken]' \\\n--output text)\nEOF\n\nif [ -z \"${AWS_ACCESS_KEY_ID}\" ] || [ -z \"${AWS_SECRET_ACCESS_KEY}\" ] || [ -z \"${AWS_SESSION_TOKEN}\" ]; then\n    echo \"Failed to assume role\";\n    exit 1\nelif [ \"${AWS_CLI_BOOL_SET_AWS_ENV_VARS}\" = 1 ]; then\n    {\n        echo \"export AWS_CLI_STR_ACCESS_KEY_ID=\\\"${AWS_ACCESS_KEY_ID}\\\"\"\n        echo \"export AWS_CLI_STR_SECRET_ACCESS_KEY=\\\"${AWS_SECRET_ACCESS_KEY}\\\"\"\n        echo \"export AWS_CLI_STR_SESSION_TOKEN=\\\"${AWS_SESSION_TOKEN}\\\"\"\n    }  >> \"$BASH_ENV\"\n\n    echo \"AWS keys successfully written to BASH_ENV\"\nelse\n    temp_file=\"/tmp/${AWS_CLI_STR_PROFILE_NAME}.keys\"\n    touch \"$temp_file\"\n    {\n        echo \"export AWS_CLI_STR_ACCESS_KEY_ID=\\\"${AWS_ACCESS_KEY_ID}\\\"\"\n        echo \"export AWS_CLI_STR_SECRET_ACCESS_KEY=\\\"${AWS_SECRET_ACCESS_KEY}\\\"\"\n        echo \"export AWS_CLI_STR_SESSION_TOKEN=\\\"${AWS_SESSION_TOKEN}\\\"\"\n    }  >> \"$temp_file\"\n    \n    echo \"AWS keys successfully written to ${AWS_CLI_STR_PROFILE_NAME}.keys\"\nfi"
+          environment:
+            AWS_CLI_BOOL_SET_AWS_ENV_VARS: <<parameters.set_aws_env_vars>>
+            AWS_CLI_INT_SESSION_DURATION: <<parameters.session_duration>>
+            AWS_CLI_STR_PROFILE_NAME: <<parameters.profile_name>>
+            AWS_CLI_STR_REGION: <<parameters.region>>
+            AWS_CLI_STR_ROLE_ARN: <<parameters.role_arn>>
+            AWS_CLI_STR_ROLE_SESSION_NAME: <<parameters.role_session_name>>
+          name: Generate short lived AWS Keys using CircleCI OIDC token.
 
+    # steps:
+    #   - checkout
+    # - aws-cli/setup:
+    #     profile_name: default
+    # - aws-cli/role_arn_setup:
+    #     profile_name: test-full-access-s3
+    #     role_arn: $AWS_IAM_ROLES
+    #     source_profile: test-full-access-s3
+    # - run: >-
+    #     aws sts assume-role --role_arn
+    #     "$AWS_IAM_ROLES" --role_session_name
+    #     AWSCLI-Session
 
-      
-      # - run:
-      #     name: Install AWS CLI
-      #     command: |
-      #       sudo apt-get update
-      #       sudo apt-get install -y awscli
-      # - run:
-      #     name: Configure AWS CLI
-      #     command: |
-      #       aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
-      #       aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
-      #       aws configure set aws_session_token $AWS_SESSION_TOKEN
-      #       aws configure set region $AWS_DEFAULT_REGION
-      # - run:
-      #     name: Deploy to AWS
-      #     command: |
-      #       aws s3 sync dist/ s3://ramdanibucket
+    # - run:
+    #     name: Install AWS CLI
+    #     command: |
+    #       sudo apt-get update
+    #       sudo apt-get install -y awscli
+    # - run:
+    #     name: Configure AWS CLI
+    #     command: |
+    #       aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+    #       aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+    #       aws configure set aws_session_token $AWS_SESSION_TOKEN
+    #       aws configure set region $AWS_DEFAULT_REGION
+    # - run:
+    #     name: Deploy to AWS
+    #     command: |
+    #       aws s3 sync dist/ s3://ramdanibucket
 
   s3_upload:
     parameters:
