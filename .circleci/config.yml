@@ -26,7 +26,7 @@ commands:
           The Amazon Resource Name (ARN) of the role that the caller is assuming.
           Role ARN must be configured for web identity.
         type: string
-        default: $AWS_IAM_ROLES
+        default: ${AWS_IAM_ROLES}
       role_session_name:
         default: ${CIRCLE_JOB}
         description: An identifier for the assumed role session
