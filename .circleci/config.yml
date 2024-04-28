@@ -7,18 +7,27 @@ commands:
   aws_setup:
     steps:
       - checkout
-      - aws-cli/setup:
-          profile_name: default
-          aws_access_key_id: AWS_ACCESS_KEY_ID_BLUE
-          aws_secret_access_key: AWS_SECRET_ACCESS_KEY_BLUE
-          region: ${AWS_DEFAULT_REGION}
-      - run: echo ${AWS_IAM_ROLES}
-      - aws-cli/role_arn_setup:
-          profile_name: test-full-access-s3
-          role_arn: ${AWS_IAM_ROLES}
-          source_profile: test-full-access-s3
-      - run: >-
-          aws sts assume-role --role-arn ${AWS_IAM_ROLES} --role-session-name test
+      - aws-s3/copy:
+          auth:
+            - aws-cli/setup:
+                profile_name: OIDC-User
+                role_arn: arn:aws:iam::123456789012/role/VALID-S3-ROLE
+          from: PATH/TO/FILE
+          profile_name: OIDC-User
+          to: s3://my-s3-bucket-name
+
+      # - aws-cli/setup:
+      #     profile_name: default
+      #     aws_access_key_id: AWS_ACCESS_KEY_ID_BLUE
+      #     aws_secret_access_key: AWS_SECRET_ACCESS_KEY_BLUE
+      #     region: ${AWS_DEFAULT_REGION}
+      # - run: echo ${AWS_IAM_ROLES}
+      # - aws-cli/role_arn_setup:
+      #     profile_name: test-full-access-s3
+      #     role_arn: ${AWS_IAM_ROLES}
+      #     source_profile: test-full-access-s3
+      # - run: >-
+      #     aws sts assume-role --role-arn ${AWS_IAM_ROLES} --role-session-name test
 
     # - run:
     #     name: Install AWS CLI
