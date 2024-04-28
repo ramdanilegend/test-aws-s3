@@ -10,7 +10,7 @@ commands:
       - aws-cli/setup:
           profile_name: default
           aws_access_key_id: ${AccessKeyId}
-          aws_secret_access_key: ${AWS_SECRET_ACCESS_KEY}
+          aws_secret_access_key: ${AWS_SECRET_ACCESS_KEY_BLUE}
           region: ${AWS_DEFAULT_REGION}
       - aws-cli/role_arn_setup:
           profile_name: test-full-access-s3
