@@ -19,7 +19,7 @@ commands:
       #     from: PATH/TO/FILE
       #     profile_name: OIDC-User
       #     to: s3://my-s3-bucket-name
-
+      - checkout
       - aws-cli/setup:
           profile_name: default
           aws_access_key_id: AWS_ACCESS_KEY_ID_BLUE
