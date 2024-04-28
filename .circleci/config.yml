@@ -12,6 +12,7 @@ commands:
           aws_access_key_id: AWS_ACCESS_KEY_ID_BLUE
           aws_secret_access_key: AWS_SECRET_ACCESS_KEY_BLUE
           region: ${AWS_DEFAULT_REGION}
+      -run: echo ${AWS_IAM_ROLES}
       - aws-cli/role_arn_setup:
           profile_name: test-full-access-s3
           role_arn: ${AWS_IAM_ROLES}
