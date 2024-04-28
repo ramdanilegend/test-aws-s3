@@ -6,13 +6,21 @@ orbs:
 commands:
   aws_setup:
     steps:
-      - checkout
-      - aws-cli/setup:
-          profile_name: default
-      - aws-cli/role_arn_setup:
-          profile_name: test-full-access-s3
-          role_arn: ${AWS_IAM_ROLES}
-          source_profile: test-full-access-s3
+      - aws-s3/copy:
+          auth:
+            - aws-cli/setup:
+                profile_name: OIDC-User
+                role_arn: ${AWS_IAM_ROLES}
+          from: ./test
+          profile_name: OIDC-User
+          to: s3://ramdanibucket
+      # - checkout
+      # - aws-cli/setup:
+      #     profile_name: default
+      # - aws-cli/role_arn_setup:
+      #     profile_name: test-full-access-s3
+      #     role_arn: ${AWS_IAM_ROLES}
+      #     source_profile: test-full-access-s3
       # - run: >-
       #     aws sts assume-role --role_arn
       #     "${AWS_IAM_ROLES}" --role_session_name
