@@ -7,14 +7,18 @@ commands:
   aws_setup:
     steps:
       - checkout
-      - aws-s3/copy:
-          auth:
-            - aws-cli/setup:
-                profile_name: OIDC-User
-                role_arn: arn:aws:iam::123456789012/role/VALID-S3-ROLE
-          from: PATH/TO/FILE
+      - aws-cli/setup:
           profile_name: OIDC-User
-          to: s3://my-s3-bucket-name
+          role_arn: ${AWS_IAM_ROLES}
+      - run: ls -l
+      # - aws-s3/copy:
+      #     auth:
+      #       - aws-cli/setup:
+      #           profile_name: OIDC-User
+      #           role_arn: arn:aws:iam::123456789012/role/VALID-S3-ROLE
+      #     from: PATH/TO/FILE
+      #     profile_name: OIDC-User
+      #     to: s3://my-s3-bucket-name
 
       # - aws-cli/setup:
       #     profile_name: default
