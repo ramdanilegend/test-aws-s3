@@ -6,14 +6,6 @@ orbs:
 commands:
   aws_setup:
     steps:
-      # - aws-s3/copy:
-      #     auth:
-      #       - aws-cli/setup:
-      #           profile_name: OIDC-User
-      #           role_arn: ${AWS_IAM_ROLES}
-      #     from: ./test
-      #     profile_name: OIDC-User
-      #     to: s3://ramdanibucket
       - checkout
       - aws-cli/setup:
           profile_name: default
