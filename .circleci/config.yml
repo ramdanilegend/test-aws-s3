@@ -1,11 +1,16 @@
 version: "2.1"
 orbs:
-  aws-s3: circleci/aws-s3@3.0
+  aws-s3: circleci/aws-s3@4.0
 
 commands:
   aws_setup:
     steps:
       - checkout
+      - run:
+          name: Install AWS CLI
+          command: |
+            sudo apt-get update
+            sudo apt-get install -y awscli
       - run:
           name: Deploy to AWS
           command: |
