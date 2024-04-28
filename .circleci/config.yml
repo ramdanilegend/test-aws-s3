@@ -10,9 +10,9 @@ commands:
       - aws-cli/setup:
           profile_name: default
       - aws-cli/role_arn_setup:
-          profile_name: new-profile
+          profile_name: test-full-access-s3
           role_arn: $AWS_IAM_ROLES
-          source_profile: default
+          source_profile: test-full-access-s3
       - run: >-
           aws sts assume-role --role_arn
           "$AWS_IAM_ROLES" --role_session_name
