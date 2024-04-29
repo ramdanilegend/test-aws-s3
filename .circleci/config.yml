@@ -30,14 +30,14 @@ commands:
       #     profile_name: test-full-access-s3
       #     role_arn: ${AWS_IAM_ROLES}
       #     source_profile: test-full-access-s3
-      - run: >-
-          aws sts assume-role --role-arn ${AWS_IAM_ROLES} --role-session-name test
+      # - run: >-
+      #     aws sts assume-role --role-arn ${AWS_IAM_ROLES} --role-session-name test
       - run: ls -l
       # - run:
-      # - aws-s3/copy:
-      #     # arguments: '--dryrun'
-      #     from: ./test
-      #     to: s3://ramdanibucket
+      - aws-s3/copy:
+          # arguments: '--dryrun'
+          from: ./test
+          to: s3://ramdanibucket
 
     # - run:
     #     name: Install AWS CLI
